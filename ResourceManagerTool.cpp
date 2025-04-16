@@ -1,15 +1,38 @@
 #include "ResourceManagerTool.h"
 
-ResourceManagerTool::ResourceManagerTool(size_t Cnt):Count(Cnt)
+void ResourceManagerTool::ReleaseResource(ResourceID ID)
 {
+    auto It=ResourcesMap.find(ID);
+    if(It!=ResourcesMap.end())
+    {
+        It->second->ReleaseTime= std::chrono::steady_clock::now();
+        It->second->UseCount--;
+    }
 }
 
-void ResourceManagerTool::SetCount(size_t Cnt)
+void ResourceManagerTool::SetReleaseDelay(std::chrono::milliseconds Delay)
 {
-	Count = Cnt;
+    ReleaseDelay=Delay;
 }
 
-size_t ResourceManagerTool::GetCount()
+void ResourceManagerTool::ExecuGC()
 {
-	return Count;
+    auto Now=std::chrono::steady_clock::now();
+    for(auto It=ResourcesMap.begin();It!=ResourcesMap.end();)
+    {
+        if(Now-It->second->ReleaseTime>=ReleaseDelay&&It->second->UseCount==0)
+        {
+            It=ResourcesMap.erase(It);
+        }else
+        {
+            ++It;
+        }
+    }
 }
+
+size_t ResourceManagerTool::GetUseCount()
+{
+    return ResourcesMap.size();
+}
+
+
