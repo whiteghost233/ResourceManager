@@ -263,6 +263,8 @@ UpgradeLog*.XML
 UpgradeLog*.htm
 ServiceFabricBackup/
 *.rptproj.bak
+*.vcxproj
+*.filters
 
 # SQL Server files
 *.mdf
