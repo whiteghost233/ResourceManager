@@ -6,33 +6,33 @@
 void Test_01()
 {
     ResourceManagerTool TestTool;
-    size_t CntA=TestTool.AddResource<int>();
+    size_t CntA = TestTool.AddResource<int>();
     TestTool.AcquireResource<int>(CntA);
     TestTool.AcquireResource<int>(CntA);
-    std::cout <<CntA<<" "<< TestTool.GetUseCount()<<std::endl;
-    
-    size_t CntB=TestTool.AddResource<int>();
+    std::cout << CntA << " " << TestTool.GetUseCount() << std::endl;
+
+    size_t CntB = TestTool.AddResource<int>();
     TestTool.AcquireResource<int>(CntB);
-    std::cout <<CntB<<" "<< TestTool.GetUseCount()<<std::endl;
+    std::cout << CntB << " " << TestTool.GetUseCount() << std::endl;
 
     TestTool.SetReleaseDelay(static_cast<std::chrono::milliseconds>(0));
-    
+
     TestTool.ExecuGC();
-    
-    std::cout << TestTool.GetUseCount()<<std::endl;
+
+    std::cout << TestTool.GetUseCount() << std::endl;
 
     TestTool.ReleaseResource(CntA);
     TestTool.ReleaseResource(CntB);
 
     TestTool.ExecuGC();
-    
-    std::cout << TestTool.GetUseCount()<<std::endl;
+
+    std::cout << TestTool.GetUseCount() << std::endl;
 
     TestTool.ReleaseResource(CntA);
 
     TestTool.ExecuGC();
-    
-    std::cout << TestTool.GetUseCount()<<std::endl;    
+
+    std::cout << TestTool.GetUseCount() << std::endl;
 }
 
 void Test_02()
@@ -90,8 +90,18 @@ void Test_02()
     auto invalidPtr = tool.AcquireResource<int>(invalidId);
     std::cout << "获取无效ID结果: " << (invalidPtr ? "错误" : "正确返回空") << std::endl;
 }
+
+void Test_03()
+{
+    ResourceManagerTool TestTool;
+    size_t CntA = TestTool.AddResource<std::string>("XXX");
+    auto* x = TestTool.AcquireResource<std::string>(CntA);
+    std::cout << *x << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+}
+
 int main()
 {
-    Test_02();
+    Test_03();
     return 0;
 }
