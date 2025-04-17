@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <iostream>
 #include <list>
-#include <string>
 
 class Actor
 {
@@ -16,6 +15,13 @@ public:
 
     ~Actor()
     {
+        for (auto It = ChildList.begin(); It != ChildList.end();)
+        {
+            delete *It;
+            
+            It = ChildList.erase(It);
+        }   
+        
         std::cout << "Delete Actor: ID " << +ID << std::endl;
     }
 
