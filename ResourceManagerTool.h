@@ -4,48 +4,34 @@
 #include <memory>
 #include <thread>
 
+#include "Actor.h"
+
 class ResourceManagerTool
 {
 public:
     ResourceManagerTool()
     {
+        RootActor=new Actor(nullptr);
+        
         StartGC();
+    }
+
+    ~ResourceManagerTool()
+    {
+        delete RootActor;
     }
 
     using TimePoint = std::chrono::steady_clock::time_point;
 
-    template <typename T, typename... Args>
-    size_t AddResource(Args&&... args)
-    {
-        size_t NewID = NextID++;
+    size_t CreateResourceActor(Actor *Parent=nullptr);
 
-        T* Resource = new T(std::forward<Args>(args)...);
-        ResourceWrapper<T>* wrapper = new ResourceWrapper<T>();
-        wrapper->Resource = Resource;
-        wrapper->ReleaseTime = std::chrono::steady_clock::now();
-
-        ResourcesMap[NewID] = wrapper;
-        return NewID;
-    }
-
-    template <typename T>
-    T* AcquireResource(size_t ID)
-    {
-        auto It = ResourcesMap.find(ID);
-        if (It != ResourcesMap.end())
-        {
-            auto CurResource = dynamic_cast<ResourceWrapper<T>*>(It->second);
-            CurResource->UseCount++;
-            return CurResource->Resource;
-        }
-        return nullptr;
-    }
+    Actor* GetResourceActor(size_t ID);
 
     void ReleaseResource(size_t ID);
 
     void SetReleaseDelay(std::chrono::milliseconds Delay);
 
-    void ExecuGC();
+    void ExecuteGC();
 
     void GCWorker();
 
@@ -53,25 +39,42 @@ public:
 
     size_t GetUseCount();
 
+    void ADDToRoot(size_t ID);
+
+    void RemoveFromRoot(size_t ID);
+
 private:
     struct ResourceWrapperBase
     {
-        virtual ~ResourceWrapperBase() = default;
-        TimePoint ReleaseTime;
+        ResourceWrapperBase()
+        {
+            ReleaseTime=new TimePoint;
+        };
+        
+        virtual ~ResourceWrapperBase()
+        {
+            delete ResouceActor;
+            delete ReleaseTime;
+        };
+        
+        Actor *ResouceActor;
+        
+        TimePoint *ReleaseTime;
+        
         size_t UseCount = 0;
-    };
-
-    template <typename T>
-    struct ResourceWrapper : ResourceWrapperBase
-    {
-        T* Resource;
-
-        ~ResourceWrapper() override { delete Resource; }
+        
+        bool bCanReach = false;
     };
 
     std::unordered_map<size_t, ResourceWrapperBase*> ResourcesMap;
+    
     std::vector<size_t> PendingReleaseVec;
-    std::chrono::milliseconds ReleaseDelay = std::chrono::milliseconds(300);
-    size_t NextID = 0;
+    
+    std::chrono::milliseconds ReleaseDelay = std::chrono::milliseconds(1000);
+    
+    //size_t NextID = 0;
+    
     std::thread GcThread;
+
+    Actor *RootActor;
 };
