@@ -6,7 +6,7 @@
 class Actor
 {
 public:
-    Actor(Actor* Parent): Parent(Parent)
+    Actor(Actor* Parent = nullptr): Parent(Parent)
     {
         static size_t staticID = 0;
         ID = staticID;
@@ -21,13 +21,18 @@ public:
 
     size_t ID;
 
-    Actor* Parent;
+    void SetParent(Actor* NewParent);
 
-    std::list<Actor*> ChildList;
-    
+    Actor* GetParent();
+
     void ChangeParent(Actor* ParentActor = nullptr);
 
     void AddChildActor(Actor* ChildActor);
 
     void RemoveChildActor(Actor* ChildActor);
+
+private:
+    Actor* Parent;
+
+    std::list<Actor*> ChildList;
 };

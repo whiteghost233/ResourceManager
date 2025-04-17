@@ -15,7 +15,7 @@ size_t ResourceManagerTool::CreateResourceActor(Actor* Parent)
         return NewWrapper->ResouceActor->ID;
     }
 
-    NewWrapper->ResouceActor->Parent=Parent;
+    NewWrapper->ResouceActor->SetParent(Parent);
 
     auto It = ResourcesMap.find(Parent->ID);
 
@@ -47,7 +47,7 @@ Actor* ResourceManagerTool::GetResourceActor(size_t ID)
     }
 
     It->second->bCanReach = true;
-    
+
     return It->second->ResouceActor;
 }
 
@@ -62,7 +62,7 @@ void ResourceManagerTool::ADDToRoot(size_t ID)
 
     RootActor->AddChildActor(It->second->ResouceActor);
 
-    It->second->ResouceActor->Parent=RootActor;
+    It->second->ResouceActor->SetParent(RootActor);
 
     It->second->bCanReach = true;
 }
@@ -75,7 +75,7 @@ void ResourceManagerTool::RemoveFromRoot(size_t ID)
     {
         return;
     }
-    
+
     RootActor->RemoveChildActor(It->second->ResouceActor);
 }
 
@@ -100,8 +100,8 @@ void ResourceManagerTool::SetReleaseDelay(std::chrono::milliseconds Delay)
 
 void ResourceManagerTool::ExecuteGC()
 {
-    static int GCtime=0;
-    std::cout<<GCtime++<<std::endl;
+    static int GCtime = 0;
+    std::cout << GCtime++ << std::endl;
     auto Now = std::chrono::steady_clock::now();
     for (auto It = ResourcesMap.begin(); It != ResourcesMap.end();)
     {
@@ -136,7 +136,6 @@ void ResourceManagerTool::GCWorker()
         ExecuteGC();
     }
 }
-
 
 size_t ResourceManagerTool::GetUseCount()
 {
