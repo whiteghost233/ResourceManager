@@ -26,7 +26,7 @@ public:
 
     using TimePoint = std::chrono::steady_clock::time_point;
 
-    size_t CreateResourceActor(std::shared_ptr<Actor> Parent);
+    size_t CreateResourceActor(std::shared_ptr<Actor> Parent={});
 
     std::shared_ptr<Actor> GetResourceActorWithLink(size_t ID);
 
