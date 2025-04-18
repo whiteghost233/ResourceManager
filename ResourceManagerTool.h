@@ -28,9 +28,7 @@ public:
     size_t CreateResourceActor(std::shared_ptr<Actor> Parent = {});
 
     std::shared_ptr<Actor> GetResourceActorWithLink(size_t ID);
-
-    void ReleaseResource(size_t ID);
-
+    
     void SetReleaseDelay(std::chrono::milliseconds Delay);
 
     void ExecuteGC();
@@ -60,8 +58,6 @@ private:
         std::shared_ptr<Actor> ResouceActor;
 
         std::shared_ptr<TimePoint> ReleaseTime;
-
-        bool bCanReach = false;
     };
 
     std::unordered_map<size_t, std::shared_ptr<ResourceWrapper>> ResourcesMap;

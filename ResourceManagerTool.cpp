@@ -31,21 +31,14 @@ size_t ResourceManagerTool::CreateResourceActor(std::shared_ptr<Actor> Parent)
     {
         return NewWrapper->ResouceActor->ID;
     }
-
-    NewWrapper->bCanReach = true;
-
+    
     NewWrapper->ResouceActor->SetParent(std::weak_ptr<Actor>(Parent));
 
     Parent->AddChildActor(NewWrapper->ResouceActor);
 
     auto It = ResourcesMap.find(Parent->ID);
 
-    if (ResourcesMap.end() == It)
-    {
-        return NewWrapper->ResouceActor->ID;
-    }
-
-    if (nullptr == It->second || false == It->second->bCanReach)
+    if (ResourcesMap.end() == It||nullptr == It->second)
     {
         return NewWrapper->ResouceActor->ID;
     }
@@ -82,8 +75,6 @@ void ResourceManagerTool::ADDToRoot(size_t ID)
     RootActor->AddChildActor(It->second->ResouceActor);
 
     It->second->ResouceActor->SetParent(RootActor);
-
-    It->second->bCanReach = true;
 }
 
 void ResourceManagerTool::RemoveFromRoot(size_t ID)
@@ -95,21 +86,9 @@ void ResourceManagerTool::RemoveFromRoot(size_t ID)
         return;
     }
 
+    It->second->ResouceActor->SetParent();
+
     RootActor->RemoveChildActor(It->second->ResouceActor);
-}
-
-void ResourceManagerTool::ReleaseResource(size_t ID)
-{
-    auto It = ResourcesMap.find(ID);
-
-    if (ResourcesMap.end() == It)
-    {
-        return;
-    }
-
-    *(It->second->ReleaseTime) = std::chrono::steady_clock::now();
-
-    It->second->bCanReach = false;
 }
 
 void ResourceManagerTool::SetReleaseDelay(std::chrono::milliseconds Delay)
@@ -124,9 +103,7 @@ void ResourceManagerTool::ExecuteGC()
     auto Now = std::chrono::steady_clock::now();
     for (auto It = ResourcesMap.begin(); It != ResourcesMap.end();)
     {
-        if (false == It->second->bCanReach
-            //&& 0 == It->second->UseCount
-            && Now - *(It->second->ReleaseTime) >= ReleaseDelay)
+        if (Now - *(It->second->ReleaseTime) >= ReleaseDelay)
         {
             It = ResourcesMap.erase(It);
         }

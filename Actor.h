@@ -21,7 +21,7 @@ public:
 
     size_t ID;
 
-    void SetParent(std::weak_ptr<Actor> NewParent);
+    void SetParent(std::weak_ptr<Actor> NewParent={});
 
     std::weak_ptr<Actor> GetParent();
 
