@@ -1,5 +1,7 @@
 #pragma once
 #include <chrono>
+#include <memory>
+#include <memory>
 #include <unordered_map>
 #include <thread>
 
@@ -10,21 +12,25 @@ class ResourceManagerTool
 public:
     ResourceManagerTool()
     {
-        RootActor=new Actor(nullptr);
-        
+        RootActor = std::make_shared<Actor>();
+
         StartGC();
     }
 
     ~ResourceManagerTool()
     {
-        delete RootActor;
+        ExecuteGC();
     }
+
+    bool CheckIfActorInGC(size_t ID);
 
     using TimePoint = std::chrono::steady_clock::time_point;
 
-    size_t CreateResourceActor(Actor *Parent=nullptr);
+    size_t CreateResourceActor(std::shared_ptr<Actor> Parent);
 
-    Actor* GetResourceActor(size_t ID);
+    std::shared_ptr<Actor> GetResourceActorWithLink(size_t ID);
+
+    void RestoreResourceActorWithLink(size_t ID);
 
     void ReleaseResource(size_t ID);
 
@@ -36,44 +42,40 @@ public:
 
     void StartGC();
 
-    size_t GetUseCount();
+    size_t GetResouceCountWithGC();
 
     void ADDToRoot(size_t ID);
 
     void RemoveFromRoot(size_t ID);
 
 private:
-    struct ResourceWrapperBase
+    struct ResourceWrapper
     {
-        ResourceWrapperBase()
+        ResourceWrapper()
         {
-            ReleaseTime=new TimePoint;
+            ReleaseTime = std::make_shared<TimePoint>();
         };
-        
-        virtual ~ResourceWrapperBase()
+
+        virtual ~ResourceWrapper()
         {
-            delete ResouceActor;
-            delete ReleaseTime;
         };
-        
-        Actor *ResouceActor;
-        
-        TimePoint *ReleaseTime;
-        
+
+        std::shared_ptr<Actor> ResouceActor;
+
+        std::shared_ptr<TimePoint> ReleaseTime;
+
         size_t UseCount = 0;
-        
+
         bool bCanReach = false;
     };
 
-    std::unordered_map<size_t, ResourceWrapperBase*> ResourcesMap;
-    
+    std::unordered_map<size_t, std::shared_ptr<ResourceWrapper>> ResourcesMap;
+
     std::vector<size_t> PendingReleaseVec;
-    
+
     std::chrono::milliseconds ReleaseDelay = std::chrono::milliseconds(1000);
-    
-    //size_t NextID = 0;
-    
+
     std::thread GcThread;
 
-    Actor *RootActor;
+    std::shared_ptr<Actor> RootActor;
 };

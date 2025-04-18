@@ -1,11 +1,12 @@
 ﻿#pragma once
 #include <iostream>
 #include <list>
+#include <memory>
 
 class Actor
 {
 public:
-    Actor(Actor* Parent = nullptr): Parent(Parent)
+    Actor(std::weak_ptr<Actor> Parent = {}): Parent(Parent)
     {
         static size_t staticID = 0;
         ID = staticID;
@@ -15,30 +16,23 @@ public:
 
     ~Actor()
     {
-        for (auto It = ChildList.begin(); It != ChildList.end();)
-        {
-            delete *It;
-            
-            It = ChildList.erase(It);
-        }   
-        
         std::cout << "Delete Actor: ID " << +ID << std::endl;
     }
 
     size_t ID;
 
-    void SetParent(Actor* NewParent);
+    void SetParent(std::weak_ptr<Actor> NewParent);
 
-    Actor* GetParent();
+    std::weak_ptr<Actor> GetParent();
 
-    void ChangeParent(Actor* ParentActor = nullptr);
+    void ChangeParent(std::weak_ptr<Actor> ParentActor);
 
-    void AddChildActor(Actor* ChildActor);
+    void AddChildActor(const std::shared_ptr<Actor>& ChildActor);
 
-    void RemoveChildActor(Actor* ChildActor);
+    void RemoveChildActor(const std::shared_ptr<Actor>& ChildActor);
 
 private:
-    Actor* Parent;
+    std::weak_ptr<Actor> Parent;
 
-    std::list<Actor*> ChildList;
+    std::list<std::shared_ptr<Actor>> ChildList;
 };

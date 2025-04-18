@@ -1,10 +1,27 @@
 #include "ResourceManagerTool.h"
 
-size_t ResourceManagerTool::CreateResourceActor(Actor* Parent)
+bool ResourceManagerTool::CheckIfActorInGC(size_t ID)
 {
-    ResourceWrapperBase* NewWrapper = new ResourceWrapperBase();
+    auto It = ResourcesMap.find(ID);
 
-    NewWrapper->ResouceActor = new Actor(Parent);
+    if (ResourcesMap.end() == It)
+    {
+        return false;
+    }
+
+    if (nullptr == It->second)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+size_t ResourceManagerTool::CreateResourceActor(std::shared_ptr<Actor> Parent)
+{
+    auto NewWrapper = std::make_shared<ResourceWrapper>();
+
+    NewWrapper->ResouceActor = std::make_shared<Actor>();
 
     *(NewWrapper->ReleaseTime) = std::chrono::steady_clock::now();
 
@@ -15,7 +32,11 @@ size_t ResourceManagerTool::CreateResourceActor(Actor* Parent)
         return NewWrapper->ResouceActor->ID;
     }
 
-    NewWrapper->ResouceActor->SetParent(Parent);
+    NewWrapper->bCanReach = true;
+
+    NewWrapper->ResouceActor->SetParent(std::weak_ptr<Actor>(Parent));
+
+    Parent->AddChildActor(NewWrapper->ResouceActor);
 
     auto It = ResourcesMap.find(Parent->ID);
 
@@ -32,7 +53,7 @@ size_t ResourceManagerTool::CreateResourceActor(Actor* Parent)
     return NewWrapper->ResouceActor->ID;
 }
 
-Actor* ResourceManagerTool::GetResourceActor(size_t ID)
+std::shared_ptr<Actor> ResourceManagerTool::GetResourceActorWithLink(size_t ID)
 {
     auto It = ResourcesMap.find(ID);
 
@@ -46,9 +67,26 @@ Actor* ResourceManagerTool::GetResourceActor(size_t ID)
         return nullptr;
     }
 
-    It->second->bCanReach = true;
+    It->second->UseCount++;
 
     return It->second->ResouceActor;
+}
+
+void ResourceManagerTool::RestoreResourceActorWithLink(size_t ID)
+{
+    auto It = ResourcesMap.find(ID);
+
+    if (ResourcesMap.end() == It)
+    {
+        return;
+    }
+
+    if (nullptr == It->second)
+    {
+        return;
+    }
+
+    It->second->UseCount--;
 }
 
 void ResourceManagerTool::ADDToRoot(size_t ID)
@@ -109,7 +147,6 @@ void ResourceManagerTool::ExecuteGC()
             && 0 == It->second->UseCount
             && Now - *(It->second->ReleaseTime) >= ReleaseDelay)
         {
-            delete It->second;
             It = ResourcesMap.erase(It);
         }
         else
@@ -137,7 +174,7 @@ void ResourceManagerTool::GCWorker()
     }
 }
 
-size_t ResourceManagerTool::GetUseCount()
+size_t ResourceManagerTool::GetResouceCountWithGC()
 {
     return ResourcesMap.size();
 }
