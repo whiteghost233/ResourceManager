@@ -19,18 +19,15 @@ public:
 
     ~ResourceManagerTool()
     {
-        ExecuteGC();
     }
 
     bool CheckIfActorInGC(size_t ID);
 
     using TimePoint = std::chrono::steady_clock::time_point;
 
-    size_t CreateResourceActor(std::shared_ptr<Actor> Parent={});
+    size_t CreateResourceActor(std::shared_ptr<Actor> Parent = {});
 
     std::shared_ptr<Actor> GetResourceActorWithLink(size_t ID);
-
-    void RestoreResourceActorWithLink(size_t ID);
 
     void ReleaseResource(size_t ID);
 
@@ -63,8 +60,6 @@ private:
         std::shared_ptr<Actor> ResouceActor;
 
         std::shared_ptr<TimePoint> ReleaseTime;
-
-        size_t UseCount = 0;
 
         bool bCanReach = false;
     };

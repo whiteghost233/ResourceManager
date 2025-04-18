@@ -10,11 +10,6 @@ std::weak_ptr<Actor> Actor::GetParent()
     return Parent;
 }
 
-void Actor::ChangeParent(std::weak_ptr<Actor> ParentActor)
-{
-    Parent = ParentActor;
-}
-
 void Actor::AddChildActor(const std::shared_ptr<Actor>& ChildActor)
 {
     if (nullptr == ChildActor)

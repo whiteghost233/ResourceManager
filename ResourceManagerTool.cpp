@@ -67,26 +67,7 @@ std::shared_ptr<Actor> ResourceManagerTool::GetResourceActorWithLink(size_t ID)
         return nullptr;
     }
 
-    It->second->UseCount++;
-
     return It->second->ResouceActor;
-}
-
-void ResourceManagerTool::RestoreResourceActorWithLink(size_t ID)
-{
-    auto It = ResourcesMap.find(ID);
-
-    if (ResourcesMap.end() == It)
-    {
-        return;
-    }
-
-    if (nullptr == It->second)
-    {
-        return;
-    }
-
-    It->second->UseCount--;
 }
 
 void ResourceManagerTool::ADDToRoot(size_t ID)
@@ -139,12 +120,12 @@ void ResourceManagerTool::SetReleaseDelay(std::chrono::milliseconds Delay)
 void ResourceManagerTool::ExecuteGC()
 {
     static int GCtime = 0;
-    std::cout << GCtime++ << std::endl;
+    std::cout << "GC Times : " << GCtime++ << std::endl;
     auto Now = std::chrono::steady_clock::now();
     for (auto It = ResourcesMap.begin(); It != ResourcesMap.end();)
     {
         if (false == It->second->bCanReach
-            && 0 == It->second->UseCount
+            //&& 0 == It->second->UseCount
             && Now - *(It->second->ReleaseTime) >= ReleaseDelay)
         {
             It = ResourcesMap.erase(It);
