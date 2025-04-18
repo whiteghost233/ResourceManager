@@ -13,8 +13,8 @@ void Test_04()
     TestTool.ADDToRoot(Cnt_2);
 
     size_t Cnt_3 = TestTool.CreateResourceActor();
-    std::shared_ptr<Actor> Get_3=TestTool.GetResourceActorWithLink(Cnt_3);
-    
+    std::shared_ptr<Actor> Get_3 = TestTool.GetResourceActorWithLink(Cnt_3);
+
     size_t Cnt_4 = TestTool.CreateResourceActor();
     TestTool.GetResourceActorWithLink(Cnt_4);
 
@@ -25,8 +25,14 @@ void Test_04()
     TestTool.ADDToRoot(Cnt_6);
     TestTool.RemoveFromRoot(Cnt_6);
 
-    
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    size_t Cnt_7 = TestTool.CreateResourceActor();
+    std::shared_ptr<Actor> Get_7 = TestTool.GetResourceActorWithLink(Cnt_7);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+
+    Get_3.reset();
+    TestTool.DislinkResourceActor(Cnt_3);
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 }
 
 int main()

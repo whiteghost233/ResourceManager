@@ -28,6 +28,8 @@ public:
     size_t CreateResourceActor(std::shared_ptr<Actor> Parent = {});
 
     std::shared_ptr<Actor> GetResourceActorWithLink(size_t ID);
+
+    void DislinkResourceActor(size_t ID);
     
     void SetReleaseDelay(std::chrono::milliseconds Delay);
 
