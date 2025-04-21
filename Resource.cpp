@@ -1,16 +1,16 @@
-﻿#include "Actor.h"
+﻿#include "Resource.h"
 
-void Actor::SetParent(std::weak_ptr<Actor> NewParent)
+void Resource::SetParent(const std::weak_ptr<Resource>& NewParent)
 {
     Parent = NewParent;
 }
 
-std::weak_ptr<Actor> Actor::GetParent()
+std::weak_ptr<Resource> Resource::GetParent()
 {
     return Parent;
 }
 
-void Actor::AddChildActor(const std::shared_ptr<Actor>& ChildActor)
+void Resource::AddChildResource(const std::shared_ptr<Resource>& ChildActor)
 {
     if (nullptr == ChildActor)
     {
@@ -20,7 +20,7 @@ void Actor::AddChildActor(const std::shared_ptr<Actor>& ChildActor)
     ChildList.push_back(ChildActor);
 }
 
-void Actor::RemoveChildActor(const std::shared_ptr<Actor>& ChildActor)
+void Resource::RemoveChildResource(const std::shared_ptr<Resource>& ChildActor)
 {
     for (auto It = ChildList.begin(); It != ChildList.end();)
     {

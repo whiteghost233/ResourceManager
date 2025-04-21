@@ -1,42 +1,158 @@
-﻿#include <iostream>
-#include <thread>
+#include "ResourceManager.h"
 
-#include "ResourceManagerTool.h"
-
-void Test_04()
+bool ResourceManager::CheckIfResourceInGC(size_t ID)
 {
-    ResourceManagerTool TestTool;
+    const auto It = ResourcesMap.find(ID);
 
-    size_t Cnt_1 = TestTool.CreateResourceActor();
+    if (ResourcesMap.end() == It)
+    {
+        return false;
+    }
 
-    size_t Cnt_2 = TestTool.CreateResourceActor();
-    TestTool.ADDToRoot(Cnt_2);
+    if (nullptr == It->second)
+    {
+        return false;
+    }
 
-    size_t Cnt_3 = TestTool.CreateResourceActor();
-    std::shared_ptr<Actor> Get_3 = TestTool.GetResourceActorWithLink(Cnt_3);
-
-    size_t Cnt_4 = TestTool.CreateResourceActor();
-    TestTool.GetResourceActorWithLink(Cnt_4);
-
-    std::shared_ptr<Actor> Actor_2 = TestTool.GetResourceActorWithLink(Cnt_2);
-    size_t Cnt_5 = TestTool.CreateResourceActor(Actor_2);
-
-    size_t Cnt_6 = TestTool.CreateResourceActor();
-    TestTool.ADDToRoot(Cnt_6);
-    TestTool.RemoveFromRoot(Cnt_6);
-
-    size_t Cnt_7 = TestTool.CreateResourceActor();
-    std::shared_ptr<Actor> Get_7 = TestTool.GetResourceActorWithLink(Cnt_7);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1200));
-
-    Get_3.reset();
-    TestTool.DislinkResourceActor(Cnt_3);
-    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+    return true;
 }
 
-int main()
+size_t ResourceManager::CreateResourceResource(const std::shared_ptr<Resource>& Parent)
 {
-    Test_04();
-    return 0;
+    auto NewWrapper = std::make_shared<ResourceWrapper>();
+
+    NewWrapper->Resource = std::make_shared<Resource>();
+
+    *(NewWrapper->ReleaseTime) = std::chrono::steady_clock::now();
+
+    ResourcesMap.insert({NewWrapper->Resource->ID, NewWrapper});
+
+    if (nullptr == Parent)
+    {
+        return NewWrapper->Resource->ID;
+    }
+
+    NewWrapper->Resource->SetParent(std::weak_ptr<Resource>(Parent));
+
+    Parent->AddChildResource(NewWrapper->Resource);
+
+    const auto It = ResourcesMap.find(Parent->ID);
+
+    if (ResourcesMap.end() == It || nullptr == It->second)
+    {
+        return NewWrapper->Resource->ID;
+    }
+
+    return NewWrapper->Resource->ID;
+}
+
+std::shared_ptr<Resource> ResourceManager::GetResourceResourceWithLink(const size_t ID)
+{
+    const auto It = ResourcesMap.find(ID);
+
+    if (ResourcesMap.end() == It)
+    {
+        return nullptr;
+    }
+
+    if (nullptr == It->second)
+    {
+        return nullptr;
+    }
+
+    *(It->second->ReleaseTime) = std::chrono::steady_clock::now();
+
+    return It->second->Resource;
+}
+
+void ResourceManager::DislinkResourceResource(const size_t ID)
+{
+    const auto It = ResourcesMap.find(ID);
+
+    if (ResourcesMap.end() == It)
+    {
+        return;
+    }
+
+    if (nullptr == It->second)
+    {
+        return;
+    }
+
+    *(It->second->ReleaseTime) = std::chrono::steady_clock::now();
+}
+
+void ResourceManager::ADDToRoot(const size_t ID)
+{
+    const auto It = ResourcesMap.find(ID);
+
+    if (ResourcesMap.end() == It)
+    {
+        return;
+    }
+
+    RootResource->AddChildResource(It->second->Resource);
+
+    It->second->Resource->SetParent(RootResource);
+}
+
+void ResourceManager::RemoveFromRoot(const size_t ID)
+{
+    const auto It = ResourcesMap.find(ID);
+
+    if (ResourcesMap.end() == It)
+    {
+        return;
+    }
+
+    It->second->Resource->SetParent();
+
+    RootResource->RemoveChildResource(It->second->Resource);
+}
+
+void ResourceManager::SetReleaseDelay(const std::chrono::milliseconds& Delay)
+{
+    ReleaseDelay = Delay;
+}
+
+void ResourceManager::ExecuteGC()
+{
+    static int GCtime = 0;
+    std::cout << "GC Times : " << GCtime++ << std::endl;
+    const auto Now = std::chrono::steady_clock::now();
+    for (auto It = ResourcesMap.begin(); It != ResourcesMap.end();)
+    {
+        if (1 == It->second->Resource.use_count() &&
+            Now - *(It->second->ReleaseTime) >= ReleaseDelay)
+        {
+            It = ResourcesMap.erase(It);
+        }
+        else
+        {
+            ++It;
+        }
+    }
+}
+
+void ResourceManager::StartGC()
+{
+    GcThread = std::thread([this]()
+    {
+        GCWorker();
+    });
+    GcThread.detach();
+}
+
+void ResourceManager::GCWorker()
+{
+    while (true)
+    {
+        std::this_thread::sleep_for(ReleaseDelay);
+        ExecuteGC();
+    }
+}
+
+size_t ResourceManager::GetResouceCountWithGC() const 
+{
+    return ResourcesMap.size();
 }
