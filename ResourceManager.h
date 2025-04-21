@@ -7,7 +7,7 @@
 
 #include "Resource.h"
 
-constexpr std::chrono::milliseconds GCTime = std::chrono::milliseconds(1000);
+constexpr std::chrono::milliseconds DefaultGCTime = std::chrono::milliseconds(1000);
 
 class ResourceManager
 {
@@ -50,7 +50,7 @@ private:
         {
             ReleaseTime = std::make_shared<TimePoint>();
         }
-        
+
         std::shared_ptr<Resource> Resource;
 
         std::shared_ptr<TimePoint> ReleaseTime;
@@ -60,7 +60,7 @@ private:
 
     std::vector<size_t> PendingReleaseVec;
 
-    std::chrono::milliseconds ReleaseDelay = GCTime;
+    std::chrono::milliseconds ReleaseDelay = DefaultGCTime;
 
     std::thread GcThread;
 

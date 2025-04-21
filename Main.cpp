@@ -28,8 +28,11 @@ void Test_01()
     size_t Cnt_7 = TestTool.CreateResourceResource();
     std::shared_ptr<Resource> Get_7 = TestTool.GetResourceResourceWithLink(Cnt_7);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+    //Starting a thread takes approximately 200 milliseconds, so the first GC will still GC out 1, 4 and 6
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
+    //The main thread 'sleep_for' takes longer than starting the GC thread. Therefore, during the first GC,
+    //'Get_3.reset()' is not executed, and '3' will not be handled by the first GC
     Get_3.reset();
     TestTool.DislinkResourceResource(Cnt_3);
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
